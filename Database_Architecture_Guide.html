@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Architecture Guide - Vinu Udani Grinding Mills</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: #fff;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: #D32F2F;
+            /* Brand Red */
+        }
+
+        .container {
+            border: 1px solid #ddd;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #FFA000;
+            /* Brand Yellow */
+            padding-bottom: 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.5rem;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f8f9fa;
+        }
+
+        .btn-print {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            background-color: #D32F2F;
+            color: white;
+            text-align: center;
+            border: none;
+            border-radius: 4px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin-bottom: 2rem;
+        }
+
+        .btn-print:hover {
+            background-color: #b71c1c;
+        }
+
+        @media print {
+            .btn-print {
+                display: none;
+            }
+
+            .container {
+                border: none;
+                box-shadow: none;
+                padding: 0;
+            }
+        }
+
+        .schema-box {
+            background: #f8f9fa;
+            border-left: 4px solid #D32F2F;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="btn-print" onclick="window.print()">🖨️ Save as PDF / Print</button>
+
+    <div class="container">
+        <div class="header">
+            <h1>Database Architecture Guide</h1>
+            <p>Vinu Udani Grinding Mills - Modern POS & E-Commerce Web App</p>
+        </div>
+
+        <h2>හැඳින්වීම (Introduction)</h2>
+        <p>මෙම ලේඛනය හරහා ඔබගේ නව වෙබ් අඩවියේ (Web App) දත්ත සමුදාය (Database) සැකසී ඇති ආකාරය සරලව විස්තර කරනු ලබයි.
+            දත්ත සමුදායක් යනු අපගේ පද්ධතියේ ඇති සියලුම තොරතුරු (පරිශීලකයන්, භාණ්ඩ, ඇණවුම්) ආරක්ෂිතව ගබඩා කරන ස්ථානයයි.
+        </p>
+
+        <h2>1. ප්‍රධාන වගු (Main Tables / Collections)</h2>
+        <p>මෙම පද්ධතිය සඳහා ප්‍රධාන වගු 4ක් යෝජනා කෙරේ:</p>
+
+        <div class="schema-box">
+            <h3>👥 Users (පරිශීලකයන්)</h3>
+            <p>පද්ධතියට ලියාපදිංචි වන පාරිභෝගිකයින්ගේ විස්තර මෙහි අඩංගු වේ.</p>
+            <table>
+                <tr>
+                    <th>Field (ක්ෂේත්‍රය)</th>
+                    <th>Description (විස්තරය)</th>
+                </tr>
+                <tr>
+                    <td>user_id</td>
+                    <td>අනන්‍ය අංකය (Primary Key)</td>
+                </tr>
+                <tr>
+                    <td>name</td>
+                    <td>පාරිභෝගිකයාගේ නම</td>
+                </tr>
+                <tr>
+                    <td>email</td>
+                    <td>විද්‍යුත් තැපෑල (Login සඳහා)</td>
+                </tr>
+                <tr>
+                    <td>password_hash</td>
+                    <td>රහස් පදය (ආරක්ෂිතව)</td>
+                </tr>
+                <tr>
+                    <td>auth_provider</td>
+                    <td>Google / Facebook / Custom ද යන්න</td>
+                </tr>
+                <tr>
+                    <td>address</td>
+                    <td>බඩු ගෙනවිත් දිය යුතු ලිපිනය</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="schema-box">
+            <h3>📦 Products (භාණ්ඩ / කුළු බඩු)</h3>
+            <p>ඔබ විකුණන සියලුම කුළු බඩු වල විස්තර මෙහි ඇත.</p>
+            <table>
+                <tr>
+                    <th>Field (ක්ෂේත්‍රය)</th>
+                    <th>Description (විස්තරය)</th>
+                </tr>
+                <tr>
+                    <td>product_id</td>
+                    <td>භාණ්ඩයේ අනන්‍ය අංකය</td>
+                </tr>
+                <tr>
+                    <td>name</td>
+                    <td>භාණ්ඩයේ නම (උදා: Chilli Powder)</td>
+                </tr>
+                <tr>
+                    <td>price</td>
+                    <td>මිල</td>
+                </tr>
+                <tr>
+                    <td>weight</td>
+                    <td>බර (උදා: 100g)</td>
+                </tr>
+                <tr>
+                    <td>image_url</td>
+                    <td>පින්තූරයේ Link එක</td>
+                </tr>
+                <tr>
+                    <td>category</td>
+                    <td>වර්ගය (Spices, Flour, ආදී)</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="schema-box">
+            <h3>🛒 Orders (ඇණවුම්)</h3>
+            <p>පාරිභෝගිකයන් විසින් කරන ලද මුළු මිලදී ගැනීම් (POS හරහා හෝ Online) මෙහි සටහන් වේ.</p>
+            <table>
+                <tr>
+                    <th>Field (ක්ෂේත්‍රය)</th>
+                    <th>Description (විස්තරය)</th>
+                </tr>
+                <tr>
+                    <td>order_id</td>
+                    <td>ඇණවුමේ අංකය</td>
+                </tr>
+                <tr>
+                    <td>user_id</td>
+                    <td>ඇණවුම දැමූ පුද්ගලයා (Foreign Key)</td>
+                </tr>
+                <tr>
+                    <td>total_amount</td>
+                    <td>මුළු මුදල</td>
+                </tr>
+                <tr>
+                    <td>discount_applied</td>
+                    <td>5% ක වට්ටමක් ලැබුනාද යන්න (True/False)</td>
+                </tr>
+                <tr>
+                    <td>status</td>
+                    <td>Pending, Shipped, Delivered</td>
+                </tr>
+                <tr>
+                    <td>created_at</td>
+                    <td>ඇණවුම දැමූ වේලාව</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="schema-box">
+            <h3>🛍️ OrderItems (ඇණවුම් කළ අයිතම)</h3>
+            <p>එක් ඇණවුමක ඇතුළත් වන භාණ්ඩ මොනවාද යන්න මෙහි දැක්වේ.</p>
+            <table>
+                <tr>
+                    <th>Field (ක්ෂේත්‍රය)</th>
+                    <th>Description (විස්තරය)</th>
+                </tr>
+                <tr>
+                    <td>item_id</td>
+                    <td>අනන්‍ය අංකය</td>
+                </tr>
+                <tr>
+                    <td>order_id</td>
+                    <td>අදාළ ඇණවුමේ අංකය</td>
+                </tr>
+                <tr>
+                    <td>product_id</td>
+                    <td>මිලදී ගත් භාණ්ඩයේ අංකය</td>
+                </tr>
+                <tr>
+                    <td>quantity</td>
+                    <td>ප්‍රමාණය (Quantity)</td>
+                </tr>
+                <tr>
+                    <td>price_at_purchase</td>
+                    <td>මිලදී ගත් අවස්ථාවේ මිල</td>
+                </tr>
+            </table>
+        </div>
+
+        <h2>කොහොමද මේක වැඩ කරන්නේ? (How it works logic)</h2>
+        <ul>
+            <li><strong>Login වීම:</strong> පරිශීලකයෙක් Google හෝ Custom විදිහට Login වුනාම, ඔහුගේ විස්තර
+                <code>Users</code> වගුවේ සටහන් වේ.</li>
+            <li><strong>භාණ්ඩ තේරීම:</strong> Website එක load වෙද්දි <code>Products</code> වගුවේ තියන දත්ත (පින්තූර,
+                මිල) UI එකට ලබා දෙයි.</li>
+            <li><strong>Discount (වට්ටම්):</strong> Shopping Cart එකේ Item 3 ක් හෝ ඊට වඩා වැඩි නම්, පද්ධතිය ස්වයංක්‍රීයව
+                (Automatic) Total එකෙන් 5% ක් අඩු කරයි.</li>
+            <li><strong>Checkout / POS Buy:</strong> පාරිභෝගිකයා Buy Button එක එබූ පසු, <code>Orders</code> වගුවට අලුත්
+                රෙකෝඩ් එකක් සහ <code>OrderItems</code> වලට අදාළ භාණ්ඩ ටික ඇතුලත් වේ.</li>
+        </ul>
+
+        <p style="text-align: center; margin-top: 3rem; color: #666;">
+            <em>Designed & Developed by AI Team</em>
+        </p>
+    </div>
+</body>
+
+</html>
