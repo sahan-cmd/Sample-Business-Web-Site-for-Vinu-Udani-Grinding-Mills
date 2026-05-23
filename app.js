@@ -58,7 +58,7 @@ const translations = {
         spicesDesc: "100% ස්භාවික, ශ්‍රී ලංකාවේ අඹරන ලද.",
         buy: "මිලදී ගන්න",
         yourOrder: "ඔබගේ ඇණවුම",
-        emptyCart: "ඔබගේ કූඩය හිස් ය.",
+        emptyCart: "ඔබගේ කූඩය හිස් ය.",
         subtotal: "අතුරු එකතුව:",
         total: "මුළු මුදල:",
         checkout: "POS හරහා ඉටු කරන්න",
@@ -298,7 +298,7 @@ function renderCartPanel() {
                     <span class="t-total">Total:</span>
                     <span id="cart-total" class="cart-total">Rs. 0.00</span>
                 </div>
-                <button class="btn btn-primary" style="width: 100%;" onclick="openPaymentModal()"><i class="ph ph-credit-card"></i> <span class="t-buyNow">Buy Now</span></button>
+                <button class="btn btn-primary" style="width: 100%;" onclick="window.openPaymentModal()"><i class="ph ph-credit-card"></i> <span class="t-buyNow">Buy Now</span></button>
             </div>
         </div>
     `;
@@ -373,7 +373,7 @@ function setupEventListeners() {
     document.getElementById('overlay').addEventListener('click', () => {
         toggleCart(false);
         toggleAuth(false);
-        closePaymentModal();
+        window.closePaymentModal();
     });
 }
 
@@ -393,7 +393,7 @@ function toggleAuth(show) {
 function renderPaymentModal() {
     return `
         <div id="payment-modal" class="auth-modal glass-heavy">
-            <button class="close-btn" style="position: absolute; top: 1rem; right: 1rem;" onclick="closePaymentModal()">
+            <button class="close-btn" style="position: absolute; top: 1rem; right: 1rem;" onclick="window.closePaymentModal()">
                 <i class="ph ph-x"></i>
             </button>
             <div class="auth-header">
@@ -420,7 +420,7 @@ function renderPaymentModal() {
                     </div>
                 </label>
             </div>
-            <button class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;" onclick="confirmOrder()">
+            <button class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;" onclick="window.confirmOrder()">
                 <i class="ph ph-check-circle"></i> <span class="t-confirmOrder">Confirm Order</span>
             </button>
         </div>
@@ -447,7 +447,7 @@ window.confirmOrder = async function() {
             date: new Date()
         });
         alert("ඔබේ ඇණවුම සාර්ථකව ලැබුණා!");
-        closePaymentModal();
+        window.closePaymentModal();
         cart = [];
         renderCartItems();
         updateCartIcon();
@@ -456,20 +456,20 @@ window.confirmOrder = async function() {
     }
 };
 
-function openPaymentModal() {
+window.openPaymentModal = function() {
     if (cart.length === 0) return alert('Your cart is empty!');
     isCartOpen = false;
     document.getElementById('cart-panel').classList.remove('open');
     isPaymentOpen = true;
     document.getElementById('payment-modal').classList.add('active');
     document.getElementById('overlay').classList.add('active');
-}
+};
 
-function closePaymentModal() {
+window.closePaymentModal = function() {
     isPaymentOpen = false;
     document.getElementById('payment-modal').classList.remove('active');
     document.getElementById('overlay').classList.remove('active');
-}
+};
 
 function addToCart(productId, variantIndex) {
     const product = products.find(p => p.id === productId);
