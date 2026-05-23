@@ -1,7 +1,25 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+// Firebase Configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyDvic1a4uKJbdYFEINkWg5o9IwojkSmP2o",
+  authDomain: "vinu-udani-grinding-mills.firebaseapp.com",
+  projectId: "vinu-udani-grinding-mills",
+  storageBucket: "vinu-udani-grinding-mills.firebasestorage.app",
+  messagingSenderId: "946213614427",
+  appId: "1:946213614427:web:e32b938fc42514f134607e"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
 // Application State
 let cart = [];
 let isCartOpen = false;
 let isAuthOpen = false;
+let isPaymentOpen = false;
 let currentTheme = localStorage.getItem('theme') || 'light';
 let currentLang = localStorage.getItem('lang') || 'en';
 
@@ -40,7 +58,7 @@ const translations = {
         spicesDesc: "100% ස්භාවික, ශ්‍රී ලංකාවේ අඹරන ලද.",
         buy: "මිලදී ගන්න",
         yourOrder: "ඔබගේ ඇණවුම",
-        emptyCart: "ඔබගේ කූඩය හිස් ය.",
+        emptyCart: "ඔබගේ કූඩය හිස් ය.",
         subtotal: "අතුරු එකතුව:",
         total: "මුළු මුදල:",
         checkout: "POS හරහා ඉටු කරන්න",
@@ -64,10 +82,8 @@ const translations = {
     }
 };
 
-// DOM Elements
 const appDiv = document.getElementById('app');
 
-// Initialization
 function init() {
     setTheme(currentTheme);
     renderApp();
@@ -82,7 +98,7 @@ function initObserver() {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('visible');
-                observer.unobserve(entry.target); // Stop tracking fully visible items to save CPU
+                observer.unobserve(entry.target);
             }
         });
     }, { threshold: 0.1 });
@@ -104,7 +120,6 @@ function toggleTheme() {
     setTheme(currentTheme === 'light' ? 'dark' : 'light');
 }
 
-// Rendering components
 function renderApp() {
     appDiv.innerHTML = `
         ${renderNavbar()}
@@ -125,15 +140,12 @@ function renderNavbar() {
         <nav class="navbar glass">
             <div class="nav-brand" style="cursor: pointer;" onclick="document.getElementById('about').scrollIntoView({behavior: 'smooth'})">
                 <img src="../Photots/old logo.png" alt="Logo" class="nav-logo" onerror="this.src='https://via.placeholder.com/50?text=Logo'">
-                <!-- Removed 'Vinu Udani' text next to logo as requested -->
             </div>
-            
             <div class="nav-links">
                  <a href="#products" class="t-ourSpices">Our Spices</a>
                  <a href="#about" class="t-aboutTitle">About</a>
                  <a href="#contact" class="t-contactTitle">Contact</a>
             </div>
-
             <div class="nav-actions">
                 <button id="lang-toggle" class="btn btn-secondary glass" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
                     ${currentLang === 'en' ? 'සිංහල' : 'English'}
@@ -227,7 +239,6 @@ window.handleBuyClick = function (productId) {
 function renderAbout() {
     return `
         <section id="about" class="section glass-heavy fade-in" style="margin: 2rem auto; border-radius: 16px; max-width: 1000px;">
-
             <div class="section-header">
                 <h2 class="section-title t-aboutTitle">About Us</h2>
                 <p style="color: var(--text-muted);" class="t-aboutLegacy">Our Legacy Since 1996</p>
@@ -260,7 +271,7 @@ function renderFooter() {
                 </div>
             </div>
             <div class="footer-bottom">
-                &copy; 2026 Sahan Ramanayake. All rights reserved.
+                © 2026 Sahan Ramanayake. All rights reserved.
             </div>
         </footer>
     `;
@@ -274,8 +285,7 @@ function renderCartPanel() {
                 <button id="close-cart" class="close-btn"><i class="ph ph-x"></i></button>
             </div>
             <div id="cart-items" class="cart-items">
-                <!-- Items will be rendering here -->
-            </div>
+                </div>
             <div class="cart-footer">
                 <div id="discount-msg" class="discount-msg">
                     <i class="ph ph-tag"></i> <span class="t-discountMsg">5% Discount Applied (3+ Items)!</span>
@@ -304,18 +314,15 @@ function renderAuthModal() {
                 <h2 id="auth-title" class="auth-title">Welcome Back</h2>
                 <p style="color: var(--text-muted); font-size: 0.9rem;">Sign in to your account</p>
             </div>
-            
             <button class="btn social-btn google">
                 <i class="ph-fill ph-google-logo"></i> Continue with Google
             </button>
             <button class="btn social-btn facebook">
                 <i class="ph-fill ph-facebook-logo"></i> Continue with Facebook
             </button>
-            
             <div class="auth-divider">
                 <span>or</span>
             </div>
-            
             <form id="auth-form" class="auth-form" onsubmit="event.preventDefault();">
                 <div class="input-group">
                     <label>Email</label>
@@ -327,7 +334,6 @@ function renderAuthModal() {
                 </div>
                 <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">Sign In</button>
             </form>
-            
             <div class="auth-switch">
                 Don't have an account? <a href="#" id="switch-auth-mode">Create new account</a>
             </div>
@@ -335,34 +341,23 @@ function renderAuthModal() {
     `;
 }
 
-// Interactivity & Logic
 function setupEventListeners() {
-    // Theme Toggle
     document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
-
-    // Lang Toggle
     document.getElementById('lang-toggle').addEventListener('click', () => {
         currentLang = currentLang === 'en' ? 'si' : 'en';
         localStorage.setItem('lang', currentLang);
         document.getElementById('lang-toggle').innerText = currentLang === 'en' ? 'සිංහල' : 'English';
         applyLanguage();
     });
-
-    // Cart Toggle
     document.getElementById('cart-toggle').addEventListener('click', () => toggleCart(true));
     document.getElementById('close-cart').addEventListener('click', () => toggleCart(false));
-
-    // Auth Modal Toggle
     document.getElementById('auth-btn').addEventListener('click', () => toggleAuth(true));
     document.getElementById('close-auth').addEventListener('click', () => toggleAuth(false));
-
-    // Auth Mode Switch (Login/Register)
     document.getElementById('switch-auth-mode').addEventListener('click', (e) => {
         e.preventDefault();
         const title = document.getElementById('auth-title');
         const submitBtn = document.querySelector('#auth-form button[type="submit"]');
         const switchText = document.getElementById('switch-auth-mode');
-
         if (title.innerText === 'Welcome Back') {
             title.innerText = 'Create Account';
             submitBtn.innerText = 'Register';
@@ -375,8 +370,6 @@ function setupEventListeners() {
             switchText.previousSibling.textContent = "Don't have an account? ";
         }
     });
-
-    // Close Modals on Overlay Click
     document.getElementById('overlay').addEventListener('click', () => {
         toggleCart(false);
         toggleAuth(false);
@@ -396,8 +389,7 @@ function toggleAuth(show) {
     document.getElementById('overlay').classList.toggle('active', show || isCartOpen);
 }
 
-// Payment Modal Logic
-let isPaymentOpen = false;
+// Payment Modal
 function renderPaymentModal() {
     return `
         <div id="payment-modal" class="auth-modal glass-heavy">
@@ -407,7 +399,11 @@ function renderPaymentModal() {
             <div class="auth-header">
                 <h2 class="auth-title t-paymentMethod">Payment Method</h2>
             </div>
-            
+            <div style="margin-bottom: 1rem;">
+                <input type="text" id="cust-name" placeholder="ඔබේ නම" class="input-control" required style="width: 100%; padding: 0.5rem; margin-bottom: 0.5rem;">
+                <input type="text" id="cust-phone" placeholder="දුරකථන අංකය" class="input-control" required style="width: 100%; padding: 0.5rem; margin-bottom: 0.5rem;">
+                <textarea id="cust-address" placeholder="භාණ්ඩ ලැබිය යුතු ලිපිනය" class="input-control" required style="width: 100%; padding: 0.5rem;"></textarea>
+            </div>
             <div style="display: flex; flex-direction: column; gap: 1rem;">
                 <label class="payment-option">
                     <input type="radio" name="paymentType" value="card" checked>
@@ -416,7 +412,6 @@ function renderPaymentModal() {
                         <span class="t-cardPayment">Card Payment</span>
                     </div>
                 </label>
-                
                 <label class="payment-option">
                     <input type="radio" name="paymentType" value="cod">
                     <div class="payment-card">
@@ -425,21 +420,46 @@ function renderPaymentModal() {
                     </div>
                 </label>
             </div>
-            
-            <button class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;" onclick="alert('Proceeding to order processing...')">
+            <button class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;" onclick="confirmOrder()">
                 <i class="ph ph-check-circle"></i> <span class="t-confirmOrder">Confirm Order</span>
             </button>
         </div>
     `;
 }
 
+window.confirmOrder = async function() {
+    const name = document.getElementById('cust-name').value;
+    const phone = document.getElementById('cust-phone').value;
+    const address = document.getElementById('cust-address').value;
+
+    if(!name || !phone || !address) {
+        alert("කරුණාකර නම, දුරකථන අංකය සහ ලිපිනය ඇතුළත් කරන්න!");
+        return;
+    }
+
+    try {
+        await addDoc(collection(db, "orders"), {
+            customerName: name,
+            customerPhone: phone,
+            deliveryAddress: address,
+            cartItems: cart,
+            total: document.getElementById('cart-total').innerText,
+            date: new Date()
+        });
+        alert("ඔබේ ඇණවුම සාර්ථකව ලැබුණා!");
+        closePaymentModal();
+        cart = [];
+        renderCartItems();
+        updateCartIcon();
+    } catch (e) {
+        alert("වැරදීමක් සිදුවුණා: " + e.message);
+    }
+};
+
 function openPaymentModal() {
     if (cart.length === 0) return alert('Your cart is empty!');
-    // Close cart first
     isCartOpen = false;
     document.getElementById('cart-panel').classList.remove('open');
-
-    // Open payment modal
     isPaymentOpen = true;
     document.getElementById('payment-modal').classList.add('active');
     document.getElementById('overlay').classList.add('active');
@@ -451,31 +471,19 @@ function closePaymentModal() {
     document.getElementById('overlay').classList.remove('active');
 }
 
-// Cart Logic
 function addToCart(productId, variantIndex) {
     const product = products.find(p => p.id === productId);
     if (!product) return;
-
     const variant = product.variants[variantIndex];
-    const cartItemId = `${productId}-${variantIndex}`; // unique identifier for product+weight combination
-
+    const cartItemId = `${productId}-${variantIndex}`;
     const existingItem = cart.find(item => item.cartItemId === cartItemId);
     if (existingItem) {
         existingItem.quantity += 1;
     } else {
-        cart.push({
-            ...product,
-            cartItemId,
-            assignedPrice: variant.price,
-            assignedWeight: variant.weight,
-            quantity: 1
-        });
+        cart.push({ ...product, cartItemId, assignedPrice: variant.price, assignedWeight: variant.weight, quantity: 1 });
     }
-
     updateCartIcon();
     renderCartItems();
-
-    // Show left-side item preview popup AND the full cart panel simultaneously
     showItemPreview(product, variant);
     toggleCart(true);
 }
@@ -483,12 +491,10 @@ function addToCart(productId, variantIndex) {
 function updateQuantity(cartItemId, delta) {
     const item = cart.find(i => i.cartItemId === cartItemId);
     if (!item) return;
-
     item.quantity += delta;
     if (item.quantity <= 0) {
         cart = cart.filter(i => i.cartItemId !== cartItemId);
     }
-
     updateCartIcon();
     renderCartItems();
 }
@@ -496,7 +502,6 @@ function updateQuantity(cartItemId, delta) {
 function updateCartIcon() {
     const badge = document.getElementById('cart-badge');
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-
     if (totalItems > 0) {
         badge.style.display = 'block';
         badge.innerText = totalItems;
@@ -507,13 +512,11 @@ function updateCartIcon() {
 
 function renderCartItems() {
     const container = document.getElementById('cart-items');
-
     if (cart.length === 0) {
         container.innerHTML = '<p style="text-align:center; color: var(--text-muted); margin-top: 2rem;">Your cart is empty.</p>';
         calculateTotals();
         return;
     }
-
     container.innerHTML = cart.map(item => `
         <div class="cart-item">
             <img src="${item.image}" alt="${item[currentLang].name}" class="cart-item-img" onerror="this.src='https://via.placeholder.com/60?text=IMG'">
@@ -530,75 +533,43 @@ function renderCartItems() {
             </div>
         </div>
     `).join('');
-
     calculateTotals();
-
-    // Do NOT call applyLanguage() here, it destroys product grid performance!
-    // Instead manually update translated elements inside cart if needed.
     const t = translations[currentLang];
-    if (t) {
-        container.querySelectorAll('.t-yourOrder').forEach(e => e.innerText = t.yourOrder);
-    }
+    if (t) container.querySelectorAll('.t-yourOrder').forEach(e => e.innerText = t.yourOrder);
 }
 
 function applyLanguage() {
     const t = translations[currentLang];
     if (!t) return;
-
-    // 1. Translate static bound elements
     Object.keys(t).forEach(key => {
-        const elements = document.querySelectorAll('.t-' + key);
-        elements.forEach(el => {
-            el.innerText = t[key];
-        });
+        document.querySelectorAll('.t-' + key).forEach(el => el.innerText = t[key]);
     });
-
-    // 2. Translate dynamic content
     const heroTitle = document.querySelector('.hero-title');
     if (heroTitle) heroTitle.innerText = businessDetails[currentLang].name;
-
     const heroSubtitle = document.querySelector('.hero-subtitle');
     if (heroSubtitle) heroSubtitle.innerText = businessDetails[currentLang].motto;
-
     const addressText = document.querySelector('.footer-address-text');
     if (addressText) addressText.innerText = businessDetails[currentLang].address;
-
     const productGrid = document.getElementById('product-grid');
-    if (productGrid) {
-        productGrid.innerHTML = getProductsHtml();
-    }
-
-    // Only re-render cart IF translations caused a desync, but to prevent loops, 
-    // it's safer to just let it be or only update text nodes instead of full DOM redraws.
-    if (cart.length > 0) {
-        renderCartItems();
-    }
+    if (productGrid) productGrid.innerHTML = getProductsHtml();
+    if (cart.length > 0) renderCartItems();
 }
 
-// Item Preview Logic
 let previewTimeout;
 function showItemPreview(product, variant) {
     const popup = document.getElementById('item-preview-popup');
     const content = document.getElementById('preview-content');
-
-    // If translations changed or popup newly rendered, apply static language string manually
     const t = translations[currentLang];
-
     content.innerHTML = `
         <img src="${product.image}" alt="${product[currentLang].name}" class="preview-img" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
         <div class="preview-item-name">${product[currentLang].name} <span style="font-size:0.8rem; color:var(--text-muted);">(${variant.weight})</span></div>
         <div class="preview-item-desc">${product[currentLang].description}</div>
     `;
-
     const titleEl = document.querySelector('.item-preview-popup .t-addedToCart');
     if (titleEl && t) titleEl.innerText = t.addedToCart;
-
     popup.classList.add('show');
-
     clearTimeout(previewTimeout);
-    previewTimeout = setTimeout(() => {
-        popup.classList.remove('show');
-    }, 4500);
+    previewTimeout = setTimeout(() => { popup.classList.remove('show'); }, 4500);
 }
 
 function renderItemPreviewPopup() {
@@ -608,39 +579,25 @@ function renderItemPreviewPopup() {
                 <span class="preview-title"><i class="ph-fill ph-check-circle"></i> <span class="t-addedToCart">Added to Cart</span></span>
                 <button class="preview-close" onclick="document.getElementById('item-preview-popup').classList.remove('show')"><i class="ph ph-x"></i></button>
             </div>
-            <div id="preview-content" class="preview-content">
-                <!-- Content injected via JS -->
-            </div>
+            <div id="preview-content" class="preview-content"></div>
         </div>
     `;
 }
 
-// Make updateQuantity globally accessible for inline onclick handlers
 window.updateQuantity = updateQuantity;
 
 function calculateTotals() {
     let totalItems = 0;
     let subtotal = 0;
-
     cart.forEach(item => {
         totalItems += item.quantity;
         subtotal += item.assignedPrice * item.quantity;
     });
-
-    let total = subtotal;
+    let total = totalItems >= 3 ? subtotal * 0.95 : subtotal;
     const discountMsg = document.getElementById('discount-msg');
-
-    // 5% discount logic for >= 3 items
-    if (totalItems >= 3) {
-        total = subtotal * 0.95;
-        discountMsg.classList.add('active');
-    } else {
-        discountMsg.classList.remove('active');
-    }
-
+    if (totalItems >= 3) discountMsg.classList.add('active'); else discountMsg.classList.remove('active');
     document.getElementById('cart-subtotal').innerText = `Rs. ${subtotal.toFixed(2)}`;
     document.getElementById('cart-total').innerText = `Rs. ${total.toFixed(2)}`;
 }
 
-// Bootstrap
 document.addEventListener('DOMContentLoaded', init);
