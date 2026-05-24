@@ -304,6 +304,7 @@ function renderCartPanel() {
     `;
 }
 
+// අලුත් කරපු Auth Modal එක
 function renderAuthModal() {
     return `
         <div id="auth-modal" class="auth-modal glass-heavy">
@@ -312,28 +313,45 @@ function renderAuthModal() {
             </button>
             <div class="auth-header">
                 <h2 id="auth-title" class="auth-title">Welcome Back</h2>
-                <p style="color: var(--text-muted); font-size: 0.9rem;">Sign in to your account</p>
+                <p id="auth-subtitle" style="color: var(--text-muted); font-size: 0.9rem;">Sign in to your account</p>
             </div>
+            
             <button class="btn social-btn google">
-                <i class="ph-fill ph-google-logo"></i> Continue with Google
+                <i class="ph-fill ph-google-logo"></i> <span id="google-btn-text">Continue with Google</span>
             </button>
             <button class="btn social-btn facebook">
-                <i class="ph-fill ph-facebook-logo"></i> Continue with Facebook
+                <i class="ph-fill ph-facebook-logo"></i> <span id="fb-btn-text">Continue with Facebook</span>
             </button>
+            
             <div class="auth-divider">
                 <span>or</span>
             </div>
+            
             <form id="auth-form" class="auth-form" onsubmit="event.preventDefault();">
+                <div class="input-group" id="auth-name-group" style="display: none;">
+                    <label>Full Name</label>
+                    <input type="text" id="auth-name" class="input-control" placeholder="Enter your full name">
+                </div>
                 <div class="input-group">
                     <label>Email</label>
-                    <input type="email" class="input-control" placeholder="Enter your email" required>
+                    <input type="email" id="auth-email" class="input-control" placeholder="Enter your email" required>
                 </div>
                 <div class="input-group">
                     <label>Password</label>
-                    <input type="password" class="input-control" placeholder="Enter your password" required>
+                    <input type="password" id="auth-password" class="input-control" placeholder="Enter your password" required>
                 </div>
+                <div class="input-group" id="auth-confirm-group" style="display: none;">
+                    <label>Confirm Password</label>
+                    <input type="password" id="auth-confirm-password" class="input-control" placeholder="Confirm your password">
+                </div>
+                
+                <div style="text-align: right; margin-top: -0.5rem; margin-bottom: 0.5rem;" id="forgot-password-wrapper">
+                    <a href="#" style="font-size: 0.8rem; color: var(--brand-red); text-decoration: none;">Forgot Password?</a>
+                </div>
+                
                 <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">Sign In</button>
             </form>
+            
             <div class="auth-switch">
                 Don't have an account? <a href="#" id="switch-auth-mode">Create new account</a>
             </div>
@@ -353,23 +371,60 @@ function setupEventListeners() {
     document.getElementById('close-cart').addEventListener('click', () => toggleCart(false));
     document.getElementById('auth-btn').addEventListener('click', () => toggleAuth(true));
     document.getElementById('close-auth').addEventListener('click', () => toggleAuth(false));
+    
+    // වෙනස් කරපු Auth Switch Logic එක
     document.getElementById('switch-auth-mode').addEventListener('click', (e) => {
         e.preventDefault();
         const title = document.getElementById('auth-title');
+        const subtitle = document.getElementById('auth-subtitle');
         const submitBtn = document.querySelector('#auth-form button[type="submit"]');
         const switchText = document.getElementById('switch-auth-mode');
+        
+        const googleBtnText = document.getElementById('google-btn-text');
+        const fbBtnText = document.getElementById('fb-btn-text');
+        
+        const nameGroup = document.getElementById('auth-name-group');
+        const confirmGroup = document.getElementById('auth-confirm-group');
+        const forgotPwdWrapper = document.getElementById('forgot-password-wrapper');
+        
+        const nameInput = document.getElementById('auth-name');
+        const confirmInput = document.getElementById('auth-confirm-password');
+
         if (title.innerText === 'Welcome Back') {
+            // Sign Up Mode එකට මාරු වීම
             title.innerText = 'Create Account';
+            subtitle.innerText = 'Join with us today';
             submitBtn.innerText = 'Register';
             switchText.innerText = 'Sign in instead';
             switchText.previousSibling.textContent = 'Already have an account? ';
+            googleBtnText.innerText = 'Sign up with Google';
+            fbBtnText.innerText = 'Sign up with Facebook';
+            
+            nameGroup.style.display = 'block';
+            confirmGroup.style.display = 'block';
+            forgotPwdWrapper.style.display = 'none';
+            
+            nameInput.required = true;
+            confirmInput.required = true;
         } else {
+            // Login Mode එකට මාරු වීම
             title.innerText = 'Welcome Back';
+            subtitle.innerText = 'Sign in to your account';
             submitBtn.innerText = 'Sign In';
             switchText.innerText = 'Create new account';
             switchText.previousSibling.textContent = "Don't have an account? ";
+            googleBtnText.innerText = 'Continue with Google';
+            fbBtnText.innerText = 'Continue with Facebook';
+            
+            nameGroup.style.display = 'none';
+            confirmGroup.style.display = 'none';
+            forgotPwdWrapper.style.display = 'block';
+            
+            nameInput.required = false;
+            confirmInput.required = false;
         }
     });
+
     document.getElementById('overlay').addEventListener('click', () => {
         toggleCart(false);
         toggleAuth(false);
