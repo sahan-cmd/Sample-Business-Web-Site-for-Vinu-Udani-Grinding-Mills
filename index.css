@@ -340,7 +340,6 @@ button {
     background: var(--bg-surface);
 }
 
-
 .product-info {
     padding: 1.5rem;
     flex-grow: 1;
@@ -557,6 +556,8 @@ button {
     transform: translate(-50%, -50%) scale(0.9);
     width: 90%;
     max-width: 450px;
+    max-height: 90vh; /* අලුතෙන් එකතු කළ කොටස */
+    overflow-y: auto; /* අලුතෙන් එකතු කළ කොටස */
     border-radius: 16px;
     z-index: 2000;
     padding: 2.5rem;
@@ -586,6 +587,7 @@ button {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    margin-bottom: 1rem; /* අලුතෙන් එකතු කළ කොටස */
 }
 
 .input-group {
