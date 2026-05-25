@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-// අලුතෙන් Google සහ Facebook Auth Imports එකතු කළා
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, GoogleAuthProvider, FacebookAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+// එකතු කළා: sendPasswordResetEmail
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, GoogleAuthProvider, FacebookAuthProvider, signInWithPopup, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -356,7 +356,7 @@ function renderAuthModal() {
                 </div>
                 
                 <div style="text-align: right; margin-top: -0.5rem; margin-bottom: 0.5rem;" id="forgot-password-wrapper">
-                    <a href="#" style="font-size: 0.8rem; color: var(--brand-red); text-decoration: none;">Forgot Password?</a>
+                    <a href="#" id="forgot-password-link" style="font-size: 0.8rem; color: var(--brand-red); text-decoration: none;">Forgot Password?</a>
                 </div>
                 
                 <button type="submit" class="btn btn-primary" style="margin-top: 0.5rem;">Sign In</button>
@@ -459,6 +459,25 @@ function setupEventListeners() {
             nameInput.required = false;
             confirmInput.required = false;
         }
+    });
+
+    // Forgot Password එකතු කළා
+    document.getElementById('forgot-password-link').addEventListener('click', (e) => {
+        e.preventDefault();
+        const emailAddress = document.getElementById('auth-email').value;
+
+        if (emailAddress === "") {
+            alert("කරුණාකර පළමුව ඔබේ ඊමේල් ලිපිනය Email කොටුවේ ඇතුළත් කර, ඉන්පසු 'Forgot Password?' මත ක්ලික් කරන්න.");
+            return;
+        }
+
+        sendPasswordResetEmail(auth, emailAddress)
+            .then(() => {
+                alert("ඔබේ ඊමේල් ලිපිනයට Password Reset ලින්ක් එකක් යැව්වා! කරුණාකර Inbox එක පරීක්ෂා කරන්න.");
+            })
+            .catch((error) => {
+                alert("Error: " + error.message);
+            });
     });
 
     // Google Sign-In
