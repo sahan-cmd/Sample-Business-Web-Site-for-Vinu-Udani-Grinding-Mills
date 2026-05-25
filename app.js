@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-// අලුතෙන් එකතු කළ Authentication Imports
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -16,7 +15,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const auth = getAuth(app); // අලුතෙන් එකතු කළා
+const auth = getAuth(app);
 
 // Application State
 let cart = [];
@@ -25,6 +24,7 @@ let isAuthOpen = false;
 let isPaymentOpen = false;
 let currentTheme = localStorage.getItem('theme') || 'light';
 let currentLang = localStorage.getItem('lang') || 'en';
+let currentUser = null; // අලුතෙන් එකතු කළා: දැනට ලොග් වෙලා ඉන්න කෙනා
 
 const translations = {
     en: {
@@ -40,6 +40,7 @@ const translations = {
         buyNow: "Buy Now",
         discountMsg: "5% Discount Applied (3+ Items)!",
         login: "Login",
+        logout: "Logout", // අලුතෙන් එකතු කළා
         aboutTitle: "About Us",
         aboutLegacy: "Our Legacy Since 1996",
         aboutDesc1: "The story of Vinu Udani Grinding Mills is one rooted in tradition, purity, and a deep-seated love for authentic Sri Lankan flavors. Established in 1996, we began our journey with a simple yet powerful mission: to bring the true essence of Sri Lankan spices from the sun-drenched fields directly to your kitchen. For nearly three decades, we have remained a family-oriented business that values quality over quantity, ensuring that every spoonful of spice we produce carries the heritage of our island.",
@@ -68,6 +69,7 @@ const translations = {
         buyNow: "දැන්ම මිලදී ගන්න",
         discountMsg: "5% ක වට්ටමක් ලැබී ඇත (අයිතම 3+)! ",
         login: "ඇතුල් වන්න",
+        logout: "පිටවන්න", // අලුතෙන් එකතු කළා
         aboutTitle: "අප ගැන",
         aboutLegacy: "1996 සිට අපගේ උරුමය",
         aboutDesc1: "විනු උදානි ග්‍රයින්ඩින් මිල්ස් කතන්දරය ලාංකීය කුළුබඩු වල සැබෑ රසයට ආදරය කරන පාරම්පරික ව්‍යාපාරයකි. 1996 දී ආරම්භ කරන ලද අපගේ අරමුණ වන්නේ ශ්‍රී ලංකාවේ කුළුබඩු වල නියම සුවඳ ඔබේ මුළුතැන්ගෙට ගෙන ඒමයි.",
@@ -94,6 +96,7 @@ function init() {
     updateCartIcon();
     applyLanguage();
     initObserver();
+    monitorAuthState(); // අලුතෙන් එකතු කළා: ලොග් වෙලාද නැද්ද කියලා බලන්න
 }
 
 function initObserver() {
@@ -157,7 +160,7 @@ function renderNavbar() {
                     <i id="theme-icon" class="ph ph-${currentTheme === 'dark' ? 'sun' : 'moon'}"></i>
                 </button>
                 <button id="auth-btn" class="btn btn-secondary glass" style="font-size: 0.9rem; padding: 0.5rem 1rem;">
-                    <i class="ph ph-user"></i> <span class="t-login">Login</span>
+                    <i class="ph ph-user"></i> <span id="auth-btn-text" class="t-login">Login</span>
                 </button>
                 <button id="cart-toggle" class="icon-btn cart-icon-wrapper" title="Cart">
                     <i class="ph ph-shopping-cart"></i>
@@ -361,6 +364,24 @@ function renderAuthModal() {
     `;
 }
 
+// අලුත් Function එක: කෙනෙක් ලොග් වෙලාද නැද්ද කියලා බලන්න
+function monitorAuthState() {
+    onAuthStateChanged(auth, (user) => {
+        const authBtnText = document.getElementById('auth-btn-text');
+        if (user) {
+            // කෙනෙක් ලොග් වෙලා ඉන්නවා නම්
+            currentUser = user;
+            authBtnText.innerText = translations[currentLang].logout || "Logout";
+            authBtnText.className = "t-logout"; // Translation එකට අදාළව
+        } else {
+            // කෙනෙක් ලොග් වෙලා නැත්නම්
+            currentUser = null;
+            authBtnText.innerText = translations[currentLang].login || "Login";
+            authBtnText.className = "t-login";
+        }
+    });
+}
+
 function setupEventListeners() {
     document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
     document.getElementById('lang-toggle').addEventListener('click', () => {
@@ -371,7 +392,24 @@ function setupEventListeners() {
     });
     document.getElementById('cart-toggle').addEventListener('click', () => toggleCart(true));
     document.getElementById('close-cart').addEventListener('click', () => toggleCart(false));
-    document.getElementById('auth-btn').addEventListener('click', () => toggleAuth(true));
+    
+    // බොත්තම Click කරාම Logout ද Login ද කියලා තීරණය කරන තැන
+    document.getElementById('auth-btn').addEventListener('click', () => {
+        if (currentUser) {
+            // ලොග් වෙලා නම් ඉන්නේ, Logout කරන්න
+            if(confirm("Are you sure you want to logout?")) {
+                signOut(auth).then(() => {
+                    alert("Logged out successfully!");
+                }).catch((error) => {
+                    alert("Error logging out: " + error.message);
+                });
+            }
+        } else {
+            // ලොග් වෙලා නැත්නම් Modal එක පෙන්නන්න
+            toggleAuth(true);
+        }
+    });
+    
     document.getElementById('close-auth').addEventListener('click', () => toggleAuth(false));
     
     document.getElementById('switch-auth-mode').addEventListener('click', (e) => {
@@ -392,7 +430,6 @@ function setupEventListeners() {
         const confirmInput = document.getElementById('auth-confirm-password');
 
         if (title.innerText === 'Welcome Back') {
-            // Sign Up Mode
             title.innerText = 'Create Account';
             subtitle.innerText = 'Join with us today';
             submitBtn.innerText = 'Register';
@@ -408,7 +445,6 @@ function setupEventListeners() {
             nameInput.required = true;
             confirmInput.required = true;
         } else {
-            // Login Mode
             title.innerText = 'Welcome Back';
             subtitle.innerText = 'Sign in to your account';
             submitBtn.innerText = 'Sign In';
@@ -445,16 +481,14 @@ function toggleAuth(show) {
     document.getElementById('overlay').classList.toggle('active', show || isCartOpen);
 }
 
-// Authentication Submit Function (Sign Up & Login)
 window.handleAuthSubmit = async function(event) {
-    event.preventDefault(); // පිටුව refresh වෙන එක නවත්තනවා
+    event.preventDefault(); 
     
     const email = document.getElementById('auth-email').value;
     const password = document.getElementById('auth-password').value;
     const submitBtn = document.querySelector('#auth-form button[type="submit"]');
     
     if (submitBtn.innerText === 'Register') {
-        // Sign Up Logic
         const name = document.getElementById('auth-name').value;
         const confirmPassword = document.getElementById('auth-confirm-password').value;
         
@@ -465,7 +499,6 @@ window.handleAuthSubmit = async function(event) {
         
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            // සාර්ථකව ගිණුම හැදුවම Firestore එකේ user ගේ නම save කරනවා
             await addDoc(collection(db, "users"), {
                 uid: userCredential.user.uid,
                 fullName: name,
@@ -473,24 +506,24 @@ window.handleAuthSubmit = async function(event) {
                 createdAt: new Date()
             });
             alert("Account created successfully!");
-            toggleAuth(false); // Modal එක වහනවා
+            document.getElementById('auth-form').reset();
+            toggleAuth(false); 
         } catch (error) {
             alert("Error: " + error.message);
         }
         
     } else {
-        // Login Logic
         try {
             await signInWithEmailAndPassword(auth, email, password);
             alert("Signed in successfully!");
-            toggleAuth(false); // Modal එක වහනවා
+            document.getElementById('auth-form').reset();
+            toggleAuth(false); 
         } catch (error) {
             alert("Error: " + error.message);
         }
     }
 };
 
-// Payment Modal
 function renderPaymentModal() {
     return `
         <div id="payment-modal" class="auth-modal glass-heavy">
@@ -645,6 +678,17 @@ function applyLanguage() {
     Object.keys(t).forEach(key => {
         document.querySelectorAll('.t-' + key).forEach(el => el.innerText = t[key]);
     });
+    
+    // Login / Logout බොත්තමේ භාෂාව අලුත් කිරීම
+    const authBtnText = document.getElementById('auth-btn-text');
+    if (authBtnText) {
+        if (currentUser) {
+            authBtnText.innerText = t.logout || "Logout";
+        } else {
+            authBtnText.innerText = t.login || "Login";
+        }
+    }
+
     const heroTitle = document.querySelector('.hero-title');
     if (heroTitle) heroTitle.innerText = businessDetails[currentLang].name;
     const heroSubtitle = document.querySelector('.hero-subtitle');
