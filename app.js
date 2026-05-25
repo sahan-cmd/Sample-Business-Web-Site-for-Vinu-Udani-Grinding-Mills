@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+// අලුතෙන් Google සහ Facebook Auth Imports එකතු කළා
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, GoogleAuthProvider, FacebookAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -17,6 +18,10 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// Auth Providers
+const googleProvider = new GoogleAuthProvider();
+const facebookProvider = new FacebookAuthProvider();
+
 // Application State
 let cart = [];
 let isCartOpen = false;
@@ -24,7 +29,7 @@ let isAuthOpen = false;
 let isPaymentOpen = false;
 let currentTheme = localStorage.getItem('theme') || 'light';
 let currentLang = localStorage.getItem('lang') || 'en';
-let currentUser = null; // අලුතෙන් එකතු කළා: දැනට ලොග් වෙලා ඉන්න කෙනා
+let currentUser = null; 
 
 const translations = {
     en: {
@@ -40,7 +45,7 @@ const translations = {
         buyNow: "Buy Now",
         discountMsg: "5% Discount Applied (3+ Items)!",
         login: "Login",
-        logout: "Logout", // අලුතෙන් එකතු කළා
+        logout: "Logout", 
         aboutTitle: "About Us",
         aboutLegacy: "Our Legacy Since 1996",
         aboutDesc1: "The story of Vinu Udani Grinding Mills is one rooted in tradition, purity, and a deep-seated love for authentic Sri Lankan flavors. Established in 1996, we began our journey with a simple yet powerful mission: to bring the true essence of Sri Lankan spices from the sun-drenched fields directly to your kitchen. For nearly three decades, we have remained a family-oriented business that values quality over quantity, ensuring that every spoonful of spice we produce carries the heritage of our island.",
@@ -69,7 +74,7 @@ const translations = {
         buyNow: "දැන්ම මිලදී ගන්න",
         discountMsg: "5% ක වට්ටමක් ලැබී ඇත (අයිතම 3+)! ",
         login: "ඇතුල් වන්න",
-        logout: "පිටවන්න", // අලුතෙන් එකතු කළා
+        logout: "පිටවන්න", 
         aboutTitle: "අප ගැන",
         aboutLegacy: "1996 සිට අපගේ උරුමය",
         aboutDesc1: "විනු උදානි ග්‍රයින්ඩින් මිල්ස් කතන්දරය ලාංකීය කුළුබඩු වල සැබෑ රසයට ආදරය කරන පාරම්පරික ව්‍යාපාරයකි. 1996 දී ආරම්භ කරන ලද අපගේ අරමුණ වන්නේ ශ්‍රී ලංකාවේ කුළුබඩු වල නියම සුවඳ ඔබේ මුළුතැන්ගෙට ගෙන ඒමයි.",
@@ -96,7 +101,7 @@ function init() {
     updateCartIcon();
     applyLanguage();
     initObserver();
-    monitorAuthState(); // අලුතෙන් එකතු කළා: ලොග් වෙලාද නැද්ද කියලා බලන්න
+    monitorAuthState(); 
 }
 
 function initObserver() {
@@ -321,10 +326,10 @@ function renderAuthModal() {
                 <p id="auth-subtitle" style="color: var(--text-muted); font-size: 0.9rem;">Sign in to your account</p>
             </div>
             
-            <button class="btn social-btn google">
+            <button class="btn social-btn google" id="btn-google-login">
                 <i class="ph-fill ph-google-logo"></i> <span id="google-btn-text">Continue with Google</span>
             </button>
-            <button class="btn social-btn facebook">
+            <button class="btn social-btn facebook" id="btn-facebook-login">
                 <i class="ph-fill ph-facebook-logo"></i> <span id="fb-btn-text">Continue with Facebook</span>
             </button>
             
@@ -364,17 +369,14 @@ function renderAuthModal() {
     `;
 }
 
-// අලුත් Function එක: කෙනෙක් ලොග් වෙලාද නැද්ද කියලා බලන්න
 function monitorAuthState() {
     onAuthStateChanged(auth, (user) => {
         const authBtnText = document.getElementById('auth-btn-text');
         if (user) {
-            // කෙනෙක් ලොග් වෙලා ඉන්නවා නම්
             currentUser = user;
             authBtnText.innerText = translations[currentLang].logout || "Logout";
-            authBtnText.className = "t-logout"; // Translation එකට අදාළව
+            authBtnText.className = "t-logout"; 
         } else {
-            // කෙනෙක් ලොග් වෙලා නැත්නම්
             currentUser = null;
             authBtnText.innerText = translations[currentLang].login || "Login";
             authBtnText.className = "t-login";
@@ -393,10 +395,8 @@ function setupEventListeners() {
     document.getElementById('cart-toggle').addEventListener('click', () => toggleCart(true));
     document.getElementById('close-cart').addEventListener('click', () => toggleCart(false));
     
-    // බොත්තම Click කරාම Logout ද Login ද කියලා තීරණය කරන තැන
     document.getElementById('auth-btn').addEventListener('click', () => {
         if (currentUser) {
-            // ලොග් වෙලා නම් ඉන්නේ, Logout කරන්න
             if(confirm("Are you sure you want to logout?")) {
                 signOut(auth).then(() => {
                     alert("Logged out successfully!");
@@ -405,7 +405,6 @@ function setupEventListeners() {
                 });
             }
         } else {
-            // ලොග් වෙලා නැත්නම් Modal එක පෙන්නන්න
             toggleAuth(true);
         }
     });
@@ -459,6 +458,34 @@ function setupEventListeners() {
             
             nameInput.required = false;
             confirmInput.required = false;
+        }
+    });
+
+    // Google Sign-In
+    document.getElementById('btn-google-login').addEventListener('click', async () => {
+        try {
+            const result = await signInWithPopup(auth, googleProvider);
+            const user = result.user;
+            alert(`Welcome ${user.displayName || 'User'}! Signed in with Google successfully.`);
+            toggleAuth(false);
+        } catch (error) {
+            alert("Google Sign-In Error: " + error.message);
+        }
+    });
+
+    // Facebook Sign-In
+    document.getElementById('btn-facebook-login').addEventListener('click', async () => {
+        try {
+            const result = await signInWithPopup(auth, facebookProvider);
+            const user = result.user;
+            alert(`Welcome ${user.displayName || 'User'}! Signed in with Facebook successfully.`);
+            toggleAuth(false);
+        } catch (error) {
+            if (error.code === 'auth/operation-not-supported-in-this-environment') {
+               alert("Facebook login is not properly configured yet. Please configure it in the Firebase Console.");
+            } else {
+               alert("Facebook Sign-In Error: " + error.message);
+            }
         }
     });
 
@@ -679,7 +706,6 @@ function applyLanguage() {
         document.querySelectorAll('.t-' + key).forEach(el => el.innerText = t[key]);
     });
     
-    // Login / Logout බොත්තමේ භාෂාව අලුත් කිරීම
     const authBtnText = document.getElementById('auth-btn-text');
     if (authBtnText) {
         if (currentUser) {
