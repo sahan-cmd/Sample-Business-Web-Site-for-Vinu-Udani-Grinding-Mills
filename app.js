@@ -1,5 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+// අලුතෙන් එකතු කළ Authentication Imports
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
 // Firebase Configuration
 const firebaseConfig = {
@@ -14,6 +16,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app); // අලුතෙන් එකතු කළා
 
 // Application State
 let cart = [];
@@ -304,7 +307,6 @@ function renderCartPanel() {
     `;
 }
 
-// අලුත් කරපු Auth Modal එක
 function renderAuthModal() {
     return `
         <div id="auth-modal" class="auth-modal glass-heavy">
@@ -327,7 +329,7 @@ function renderAuthModal() {
                 <span>or</span>
             </div>
             
-            <form id="auth-form" class="auth-form" onsubmit="event.preventDefault();">
+            <form id="auth-form" class="auth-form" onsubmit="window.handleAuthSubmit(event)">
                 <div class="input-group" id="auth-name-group" style="display: none;">
                     <label>Full Name</label>
                     <input type="text" id="auth-name" class="input-control" placeholder="Enter your full name">
@@ -372,7 +374,6 @@ function setupEventListeners() {
     document.getElementById('auth-btn').addEventListener('click', () => toggleAuth(true));
     document.getElementById('close-auth').addEventListener('click', () => toggleAuth(false));
     
-    // වෙනස් කරපු Auth Switch Logic එක
     document.getElementById('switch-auth-mode').addEventListener('click', (e) => {
         e.preventDefault();
         const title = document.getElementById('auth-title');
@@ -391,7 +392,7 @@ function setupEventListeners() {
         const confirmInput = document.getElementById('auth-confirm-password');
 
         if (title.innerText === 'Welcome Back') {
-            // Sign Up Mode එකට මාරු වීම
+            // Sign Up Mode
             title.innerText = 'Create Account';
             subtitle.innerText = 'Join with us today';
             submitBtn.innerText = 'Register';
@@ -400,14 +401,14 @@ function setupEventListeners() {
             googleBtnText.innerText = 'Sign up with Google';
             fbBtnText.innerText = 'Sign up with Facebook';
             
-            nameGroup.style.display = 'block';
-            confirmGroup.style.display = 'block';
+            nameGroup.style.display = '';
+            confirmGroup.style.display = '';
             forgotPwdWrapper.style.display = 'none';
             
             nameInput.required = true;
             confirmInput.required = true;
         } else {
-            // Login Mode එකට මාරු වීම
+            // Login Mode
             title.innerText = 'Welcome Back';
             subtitle.innerText = 'Sign in to your account';
             submitBtn.innerText = 'Sign In';
@@ -443,6 +444,51 @@ function toggleAuth(show) {
     document.getElementById('auth-modal').classList.toggle('active', show);
     document.getElementById('overlay').classList.toggle('active', show || isCartOpen);
 }
+
+// Authentication Submit Function (Sign Up & Login)
+window.handleAuthSubmit = async function(event) {
+    event.preventDefault(); // පිටුව refresh වෙන එක නවත්තනවා
+    
+    const email = document.getElementById('auth-email').value;
+    const password = document.getElementById('auth-password').value;
+    const submitBtn = document.querySelector('#auth-form button[type="submit"]');
+    
+    if (submitBtn.innerText === 'Register') {
+        // Sign Up Logic
+        const name = document.getElementById('auth-name').value;
+        const confirmPassword = document.getElementById('auth-confirm-password').value;
+        
+        if (password !== confirmPassword) {
+            alert("Passwords do not match!");
+            return;
+        }
+        
+        try {
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            // සාර්ථකව ගිණුම හැදුවම Firestore එකේ user ගේ නම save කරනවා
+            await addDoc(collection(db, "users"), {
+                uid: userCredential.user.uid,
+                fullName: name,
+                email: email,
+                createdAt: new Date()
+            });
+            alert("Account created successfully!");
+            toggleAuth(false); // Modal එක වහනවා
+        } catch (error) {
+            alert("Error: " + error.message);
+        }
+        
+    } else {
+        // Login Logic
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            alert("Signed in successfully!");
+            toggleAuth(false); // Modal එක වහනවා
+        } catch (error) {
+            alert("Error: " + error.message);
+        }
+    }
+};
 
 // Payment Modal
 function renderPaymentModal() {
